@@ -1,0 +1,92 @@
+[
+  {
+    "id": "frame_001",
+    "filename": "frame_001.jpg",
+    "description": "Courier in high-vis vest holding cardboard parcel",
+    "expectedRole": "courier",
+    "expectedIntent": "delivery",
+    "expectedCarries": ["parcel"],
+    "expectedSeverity": "attention"
+  },
+  {
+    "id": "frame_002",
+    "filename": "frame_002.jpg",
+    "description": "Food delivery driver holding insulated food bag",
+    "expectedRole": "delivery_food",
+    "expectedIntent": "delivery",
+    "expectedCarries": ["food_bag"],
+    "expectedSeverity": "attention"
+  },
+  {
+    "id": "frame_003",
+    "filename": "frame_003.jpg",
+    "description": "Visiting nurse in scrubs carrying medical clipboard",
+    "expectedRole": "service_worker",
+    "expectedIntent": "visit",
+    "expectedCarries": ["clipboard"],
+    "expectedSeverity": "calm"
+  },
+  {
+    "id": "frame_004",
+    "filename": "frame_004.jpg",
+    "description": "Neighbor waving at front porch without items",
+    "expectedRole": "neighbor_or_friend",
+    "expectedIntent": "visit",
+    "expectedCarries": [],
+    "expectedSeverity": "attention"
+  },
+  {
+    "id": "frame_005",
+    "filename": "frame_005.jpg",
+    "description": "Solicitor wearing lanyard and carrying flyers",
+    "expectedRole": "solicitor",
+    "expectedIntent": "sales_or_canvassing",
+    "expectedCarries": ["flyers"],
+    "expectedSeverity": "attention"
+  },
+  {
+    "id": "frame_006",
+    "filename": "frame_006.jpg",
+    "description": "Domestic cat sitting on the front doormat",
+    "expectedRole": "animal",
+    "expectedIntent": "unknown",
+    "expectedCarries": [],
+    "expectedSeverity": "info"
+  },
+  {
+    "id": "frame_007",
+    "filename": "frame_007.jpg",
+    "description": "Car driving past on street in front of driveway",
+    "expectedRole": "vehicle_only",
+    "expectedIntent": "passing_by",
+    "expectedCarries": [],
+    "expectedSeverity": "info"
+  },
+  {
+    "id": "frame_008",
+    "filename": "frame_008.jpg",
+    "description": "Postal carrier placing envelopes in mailbox",
+    "expectedRole": "courier",
+    "expectedIntent": "delivery",
+    "expectedCarries": ["mail"],
+    "expectedSeverity": "attention"
+  },
+  {
+    "id": "frame_009",
+    "filename": "frame_009.jpg",
+    "description": "Child in backpack walking across front path",
+    "expectedRole": "child",
+    "expectedIntent": "passing_by",
+    "expectedCarries": ["backpack"],
+    "expectedSeverity": "info"
+  },
+  {
+    "id": "frame_010",
+    "filename": "frame_010.jpg",
+    "description": "Plumber in uniform carrying tool bag",
+    "expectedRole": "service_worker",
+    "expectedIntent": "service",
+    "expectedCarries": ["tool_bag"],
+    "expectedSeverity": "calm"
+  }
+]

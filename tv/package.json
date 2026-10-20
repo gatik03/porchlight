@@ -1,0 +1,33 @@
+{
+  "name": "@porchlight/tv",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "start": "react-native start",
+    "build": "react-native build-vega --build-type Release",
+    "build:debug": "react-native build-vega --build-type Debug",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@amazon-devices/react-native-kepler": "~4.0.0",
+    "react": "19.2.0",
+    "react-native": "0.83.0"
+  },
+  "devDependencies": {
+    "@amazon-devices/kepler-cli-platform": "^0",
+    "@react-native-community/cli": "20.0.0",
+    "@react-native/babel-preset": "0.83.0",
+    "@react-native/metro-config": "0.83.0",
+    "@react-native/typescript-config": "0.83.0",
+    "@types/react": "^19.2.0",
+    "typescript": "5.8.3"
+  },
+  "engines": {
+    "node": ">=20"
+  },
+  "kepler": {
+    "projectType": "application",
+    "appName": "porchlight-tv",
+    "targets": ["tv"]
+  }
+}

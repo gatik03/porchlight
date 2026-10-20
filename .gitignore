@@ -1,0 +1,66 @@
+# Python
+.venv/
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.pytest_cache/
+.coverage
+htmlcov/
+
+# Environment & Secrets
+.env
+.env.local
+.env.*.local
+samconfig.toml
+
+# Node & Next.js
+node_modules/
+.next/
+out/
+build/
+dist/
+
+# Vega & Fire TV
+tv/build/
+tv/dist/
+
+# System
+.DS_Store
+*.swp
+*.swo
+
+# SAM / AWS build output
+.aws-sam/
+samconfig.*.toml
+!samconfig.example.toml
+
+# TypeScript / Next build artifacts
+next-env.d.ts
+*.tsbuildinfo
+*.vpkg
+coverage/
+
+# Local secrets and device config
+tv/src/config.ts
+*.pem
+
+# Logs and editors
+*.log
+npm-debug.log*
+.idea/
+.vscode/
+
+# Agent tooling and internal planning docs (kept locally, not published)
+CLAUDE.md
+.claude/
+graphify-out/
+Memory.md
+Rules.md
+Phases.md
+PRD.md
+Design.md
+decisions.md
+flow.md
+Architecture.md
+PORCHLIGHT_ARCHITECTURE.md

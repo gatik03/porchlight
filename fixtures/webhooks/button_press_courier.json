@@ -1,0 +1,23 @@
+{
+  "meta": {
+    "request_id": "req_sim_courier_001",
+    "account_id": "acct_demo_household"
+  },
+  "data": {
+    "type": "events",
+    "id": "event_sim_courier_123",
+    "attributes": {
+      "event_type": "button_press",
+      "device_id": "doorbell_front_01",
+      "created_at": "2026-10-18T10:04:12Z"
+    },
+    "relationships": {
+      "device": {
+        "data": {
+          "type": "devices",
+          "id": "doorbell_front_01"
+        }
+      }
+    }
+  }
+}

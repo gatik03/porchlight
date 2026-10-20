@@ -1,0 +1,19 @@
+{
+  "name": "ring-webhook-verify",
+  "version": "0.1.0",
+  "description": "HMAC-SHA256 signature verification helper for Ring Partner API webhooks in TypeScript and Node.js.",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "files": ["dist"],
+  "scripts": {
+    "build": "tsc",
+    "test": "npm run build && node --test test/verify.test.js"
+  },
+  "keywords": ["ring", "webhook", "security", "hmac", "smart-home", "partner-api"],
+  "author": "Porchlight Contributors",
+  "license": "MIT",
+  "devDependencies": {
+    "@types/node": "^22.0.0",
+    "typescript": "^5.6.0"
+  }
+}

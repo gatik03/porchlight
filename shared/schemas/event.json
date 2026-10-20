@@ -1,0 +1,22 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "NormalizedEvent",
+  "type": "object",
+  "required": ["requestId", "accountId", "type", "deviceId", "deviceName", "occurredAt", "receivedAt", "timeLocal"],
+  "properties": {
+    "requestId": { "type": "string", "minLength": 1 },
+    "accountId": { "type": "string", "minLength": 1 },
+    "type": {
+      "type": "string",
+      "enum": ["button_press", "motion_detected", "device_added", "device_removed", "device_online", "device_offline", "other"]
+    },
+    "deviceId": { "type": "string", "minLength": 1 },
+    "deviceName": { "type": "string" },
+    "eventId": { "type": "string" },
+    "occurredAt": { "type": "string", "format": "date-time" },
+    "receivedAt": { "type": "string", "format": "date-time" },
+    "timeLocal": { "type": "string" },
+    "raw": {}
+  },
+  "additionalProperties": false
+}

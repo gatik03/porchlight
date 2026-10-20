@@ -1,0 +1,297 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+Description: >
+  Porchlight: Accessible smart doorbell visual chime and caretaking terminal for Ring.
+  Amazon Developer Hackathon 2026 entry.
+
+Globals:
+  Function:
+    Runtime: python3.12
+    Architectures:
+      - arm64
+    Timeout: 10
+    MemorySize: 512
+    Environment:
+      Variables:
+        TABLE_NAME: !Ref PorchlightTable
+        EVENTS_QUEUE_URL: !Ref PorchlightEventsQueue
+        FRAMES_BUCKET_NAME: !Ref PorchlightFramesBucket
+        BEDROCK_VISION_MODEL_ID: amazon.nova-lite-v1:0
+        BEDROCK_TEXT_MODEL_ID: amazon.nova-lite-v1:0
+        HMAC_KEY_PARAM: /porchlight/ring/hmac_key
+        PASSPHRASE_PARAM: /porchlight/dashboard/passphrase
+
+Resources:
+  # =========================================================================
+  # HTTP API Gateway
+  # =========================================================================
+  PorchlightHttpApi:
+    Type: AWS::Serverless::HttpApi
+    Properties:
+      CorsConfiguration:
+        AllowMethods:
+          - GET
+          - POST
+          - PUT
+          - OPTIONS
+        AllowHeaders:
+          - Content-Type
+          - X-Signature
+          - x-porchlight-key
+          - Authorization
+        AllowOrigins:
+          - "*"
+
+  # =========================================================================
+  # Storage: DynamoDB Single Table
+  # =========================================================================
+  PorchlightTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName: porchlight
+      BillingMode: PAY_PER_REQUEST
+      AttributeDefinitions:
+        - AttributeName: pk
+          AttributeType: S
+        - AttributeName: sk
+          AttributeType: S
+      KeySchema:
+        - AttributeName: pk
+          KeyType: HASH
+        - AttributeName: sk
+          KeyType: RANGE
+      TimeToLiveSpecification:
+        AttributeName: ttl
+        Enabled: true
+
+  # =========================================================================
+  # Storage: S3 Bucket for Frames
+  # =========================================================================
+  PorchlightFramesBucket:
+    Type: AWS::S3::Bucket
+    Properties:
+      BucketName: !Sub "porchlight-frames-${AWS::AccountId}-${AWS::Region}"
+      PublicAccessBlockConfiguration:
+        BlockPublicAcls: true
+        BlockPublicPolicy: true
+        IgnorePublicAcls: true
+        RestrictPublicBuckets: true
+      LifecycleConfiguration:
+        Rules:
+          - Id: ExpireFramesAfter7Days
+            Status: Enabled
+            ExpirationInDays: 7
+
+  # =========================================================================
+  # Queue: SQS with DLQ
+  # =========================================================================
+  PorchlightEventsDLQ:
+    Type: AWS::SQS::Queue
+    Properties:
+      QueueName: porchlight-events-dlq
+      MessageRetentionPeriod: 1209600 # 14 days
+
+  PorchlightEventsQueue:
+    Type: AWS::SQS::Queue
+    Properties:
+      QueueName: porchlight-events
+      VisibilityTimeout: 60
+      RedrivePolicy:
+        deadLetterTargetArn: !GetAtt PorchlightEventsDLQ.Arn
+        maxReceiveCount: 3
+
+  # =========================================================================
+  # Lambda 1: Webhook Ingestion (Fast < 1s response)
+  # =========================================================================
+  WebhookFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: src/
+      Handler: handlers.webhook.lambda_handler
+      Timeout: 5
+      MemorySize: 512
+      Policies:
+        - DynamoDBCrudPolicy:
+            TableName: !Ref PorchlightTable
+        - SQSSendMessagePolicy:
+            QueueName: !GetAtt PorchlightEventsQueue.QueueName
+        - SSMParameterReadPolicy:
+            ParameterName: porchlight/ring/*
+      Events:
+        RingWebhook:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref PorchlightHttpApi
+            Path: /ring/webhook
+            Method: POST
+
+  # =========================================================================
+  # Lambda 2: Processor (SQS Consumer, Bedrock Vision)
+  # =========================================================================
+  ProcessorFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: src/
+      Handler: handlers.processor.lambda_handler
+      Timeout: 45
+      MemorySize: 1024
+      ReservedConcurrentExecutions: 3
+      Policies:
+        - DynamoDBCrudPolicy:
+            TableName: !Ref PorchlightTable
+        - S3CrudPolicy:
+            BucketName: !Ref PorchlightFramesBucket
+        - Statement:
+            - Effect: Allow
+              Action:
+                - bedrock:InvokeModel
+              Resource: "*"
+            - Effect: Allow
+              Action:
+                - ssm:GetParameter
+                - ssm:GetParameters
+              Resource: !Sub "arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter/porchlight/*"
+      Events:
+        EventsQueueTrigger:
+          Type: SQS
+          Properties:
+            Queue: !GetAtt PorchlightEventsQueue.Arn
+            BatchSize: 1
+
+  # =========================================================================
+  # Lambda 3: Read API (Card polling, events, settings)
+  # =========================================================================
+  ReadApiFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: src/
+      Handler: handlers.read_api.lambda_handler
+      Timeout: 25
+      MemorySize: 512
+      Policies:
+        - DynamoDBCrudPolicy:
+            TableName: !Ref PorchlightTable
+        - S3ReadPolicy:
+            BucketName: !Ref PorchlightFramesBucket
+        - Statement:
+            - Effect: Allow
+              Action:
+                - s3:PutObject
+              Resource: !Sub "${PorchlightFramesBucket.Arn}/frames/latest/*"
+        - SSMParameterReadPolicy:
+            ParameterName: porchlight/*
+      Events:
+        GetHealth:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref PorchlightHttpApi
+            Path: /api/health
+            Method: GET
+        GetCurrentCard:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref PorchlightHttpApi
+            Path: /api/card/current
+            Method: GET
+        DismissCard:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref PorchlightHttpApi
+            Path: /api/card/dismiss
+            Method: POST
+        GetEvents:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref PorchlightHttpApi
+            Path: /api/events
+            Method: GET
+        GetSettings:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref PorchlightHttpApi
+            Path: /api/settings
+            Method: GET
+        PutSettings:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref PorchlightHttpApi
+            Path: /api/settings
+            Method: PUT
+        GetDigest:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref PorchlightHttpApi
+            Path: /api/digest/{date}
+            Method: GET
+        PostFrame:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref PorchlightHttpApi
+            Path: /api/frames
+            Method: POST
+
+  # =========================================================================
+  # Lambda 4: Transcribe Auth (Presigned WebSocket URL)
+  # =========================================================================
+  TranscribeAuthFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: src/
+      Handler: handlers.transcribe_auth.lambda_handler
+      Timeout: 10
+      MemorySize: 512
+      Policies:
+        - Statement:
+            - Effect: Allow
+              Action:
+                - transcribe:StartStreamTranscriptionWebSocket
+              Resource: "*"
+        - SSMParameterReadPolicy:
+            ParameterName: porchlight/*
+      Events:
+        GetTranscribeUrl:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref PorchlightHttpApi
+            Path: /api/transcribe/url
+            Method: GET
+
+  # =========================================================================
+  # Lambda 5: Scheduled Digest Job (Nightly EventBridge cron)
+  # =========================================================================
+  DigestJobFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: src/
+      Handler: handlers.digest_job.lambda_handler
+      Timeout: 60
+      MemorySize: 512
+      Policies:
+        - DynamoDBCrudPolicy:
+            TableName: !Ref PorchlightTable
+        - Statement:
+            - Effect: Allow
+              Action:
+                - bedrock:InvokeModel
+              Resource: "*"
+      Events:
+        NightlySchedule:
+          Type: Schedule
+          Properties:
+            Schedule: "cron(30 23 * * ? *)"
+            Name: porchlight-nightly-digest
+            Description: "Generates daily caregiver summary and detects anomalies"
+
+Outputs:
+  HttpApiUrl:
+    Description: "Public API Gateway HTTP URL"
+    Value: !Sub "https://${PorchlightHttpApi}.execute-api.${AWS::Region}.amazonaws.com"
+  WebhookUrl:
+    Description: "Register this webhook URL in the Ring Developer Portal"
+    Value: !Sub "https://${PorchlightHttpApi}.execute-api.${AWS::Region}.amazonaws.com/ring/webhook"
+  TableName:
+    Description: "DynamoDB Single Table"
+    Value: !Ref PorchlightTable
+  FramesBucketName:
+    Description: "S3 Frames Bucket"
+    Value: !Ref PorchlightFramesBucket

@@ -1,0 +1,59 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "VisitorDescription",
+  "type": "object",
+  "required": ["sentence", "visitors", "intentGuess", "confidence", "safetyFlags", "promptVersion"],
+  "properties": {
+    "sentence": {
+      "type": "string",
+      "maxLength": 200,
+      "description": "Plain English sentence, max 20 words, present tense, no names"
+    },
+    "visitors": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["role", "carrying"],
+        "properties": {
+          "role": {
+            "type": "string",
+            "enum": [
+              "courier",
+              "delivery_food",
+              "service_worker",
+              "neighbor_or_friend",
+              "solicitor",
+              "child",
+              "unknown_adult",
+              "animal",
+              "vehicle_only"
+            ]
+          },
+          "carrying": {
+            "type": "array",
+            "items": { "type": "string" }
+          },
+          "clothing": {
+            "type": ["string", "null"]
+          }
+        },
+        "additionalProperties": false
+      }
+    },
+    "intentGuess": {
+      "type": "string",
+      "enum": ["delivery", "visit", "service", "sales_or_canvassing", "passing_by", "unknown"]
+    },
+    "confidence": {
+      "type": "number",
+      "minimum": 0,
+      "maximum": 1
+    },
+    "safetyFlags": {
+      "type": "array",
+      "items": { "type": "string" }
+    },
+    "promptVersion": { "type": "string" }
+  },
+  "additionalProperties": false
+}

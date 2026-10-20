@@ -1,0 +1,32 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Card",
+  "type": "object",
+  "required": ["cardId", "accountId", "severity", "headline", "sentence", "deviceName", "timeLocal", "createdAt"],
+  "properties": {
+    "cardId": { "type": "string" },
+    "accountId": { "type": "string" },
+    "severity": {
+      "type": "string",
+      "enum": ["calm", "attention", "info"]
+    },
+    "headline": { "type": "string" },
+    "sentence": { "type": "string" },
+    "expectedLine": { "type": "string" },
+    "deviceName": { "type": "string" },
+    "timeLocal": { "type": "string" },
+    "frameUrl": { "type": "string" },
+    "createdAt": { "type": "string" },
+    "dismissedAt": { "type": ["string", "null"] },
+    "latencyMs": {
+      "type": "object",
+      "properties": {
+        "webhookToEnqueue": { "type": "number" },
+        "frame": { "type": "number" },
+        "vision": { "type": "number" },
+        "total": { "type": "number" }
+      }
+    }
+  },
+  "additionalProperties": false
+}

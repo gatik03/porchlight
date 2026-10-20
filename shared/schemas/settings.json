@@ -1,0 +1,68 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Settings",
+  "type": "object",
+  "required": ["accountId", "timezone", "deviceNames", "expectedVisitors", "quietHours", "flashIntensity"],
+  "properties": {
+    "accountId": { "type": "string" },
+    "timezone": { "type": "string" },
+    "deviceNames": {
+      "type": "object",
+      "additionalProperties": { "type": "string" }
+    },
+    "expectedVisitors": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["id", "label", "role", "days", "windowStart", "windowEnd"],
+        "properties": {
+          "id": { "type": "string" },
+          "label": { "type": "string" },
+          "role": {
+            "type": "string",
+            "enum": [
+              "courier",
+              "delivery_food",
+              "service_worker",
+              "neighbor_or_friend",
+              "solicitor",
+              "child",
+              "unknown_adult",
+              "animal",
+              "vehicle_only"
+            ]
+          },
+          "days": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "enum": ["mon", "tue", "wed", "thu", "fri", "sat", "sun"]
+            }
+          },
+          "windowStart": { "type": "string", "pattern": "^[0-2][0-9]:[0-5][0-9]$" },
+          "windowEnd": { "type": "string", "pattern": "^[0-2][0-9]:[0-5][0-9]$" },
+          "carries": {
+            "type": "array",
+            "items": { "type": "string" }
+          }
+        },
+        "additionalProperties": false
+      }
+    },
+    "quietHours": {
+      "type": "object",
+      "required": ["start", "end"],
+      "properties": {
+        "start": { "type": "string", "pattern": "^[0-2][0-9]:[0-5][0-9]$" },
+        "end": { "type": "string", "pattern": "^[0-2][0-9]:[0-5][0-9]$" }
+      },
+      "additionalProperties": false
+    },
+    "flashIntensity": {
+      "type": "string",
+      "enum": ["off", "low", "high"]
+    },
+    "caretakerEmail": { "type": "string" }
+  },
+  "additionalProperties": false
+}

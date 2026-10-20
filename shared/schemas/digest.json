@@ -1,0 +1,57 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Digest",
+  "type": "object",
+  "required": ["accountId", "date", "timeline", "counts", "anomalies", "builtAt"],
+  "properties": {
+    "accountId": { "type": "string" },
+    "date": { "type": "string", "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}$" },
+    "timeline": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["timeLocal", "headline", "sentence", "severity"],
+        "properties": {
+          "timeLocal": { "type": "string" },
+          "headline": { "type": "string" },
+          "sentence": { "type": "string" },
+          "severity": {
+            "type": "string",
+            "enum": ["calm", "attention", "info"]
+          }
+        },
+        "additionalProperties": false
+      }
+    },
+    "counts": {
+      "type": "object",
+      "required": ["buttonPresses", "motion", "expected", "unexpected"],
+      "properties": {
+        "buttonPresses": { "type": "integer", "minimum": 0 },
+        "motion": { "type": "integer", "minimum": 0 },
+        "expected": { "type": "integer", "minimum": 0 },
+        "unexpected": { "type": "integer", "minimum": 0 }
+      },
+      "additionalProperties": false
+    },
+    "anomalies": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["kind", "window", "explanation"],
+        "properties": {
+          "kind": {
+            "type": "string",
+            "enum": ["quiet_day", "night_activity", "unexpected_repeat", "expected_missed"]
+          },
+          "window": { "type": "string" },
+          "explanation": { "type": "string" }
+        },
+        "additionalProperties": false
+      }
+    },
+    "narrative": { "type": "string", "maxLength": 1000 },
+    "builtAt": { "type": "string", "format": "date-time" }
+  },
+  "additionalProperties": false
+}

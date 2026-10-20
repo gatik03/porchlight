@@ -1,0 +1,17 @@
+# AWS SAM Configuration Template
+# Copy this file to samconfig.toml and set your region and parameters.
+# NEVER commit samconfig.toml if it contains actual AWS account numbers.
+
+version = 0.1
+
+[default]
+[default.deploy]
+[default.deploy.parameters]
+stack_name = "porchlight"
+s3_bucket = "aws-sam-cli-managed-default-samclisourcebucket"
+s3_prefix = "porchlight"
+region = "us-east-1"
+confirm_changeset = true
+capabilities = "CAPABILITY_IAM"
+parameter_overrides = ""
+image_repositories = []
